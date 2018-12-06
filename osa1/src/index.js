@@ -1,22 +1,60 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-const Hello = (props) => {
-    return (
+class App extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      vasen: 0,
+      oikea: 0,
+      kaikki: []
+    }
+  }
+
+  klikVasen = () => {
+    this.setState({
+      vasen: this.state.vasen + 1,
+      kaikki: this.state.kaikki.concat('v')
+    })
+  }
+
+  klikOikea = () => {
+    this.setState({
+      oikea: this.state.oikea + 1,
+      kaikki: this.state.kaikki.concat('o')
+    })
+  }
+
+  render() {
+    const historia = () => {
+      if (this.state.kaikki.length === 0) {
+        return (
+          <div>
+            <em>Push em buttons!</em>
+          </div>
+        )
+      }
+      return (
         <div>
-            <p>Hello {props.name}, you are {props.age} years old</p>
+          näppäilyhistoria: {this.state.kaikki.join(' ')}
         </div>
-    )
-}
-const App = () => {
-    const ika = 13
+      )
+    }
     return (
+      <div>
         <div>
-            <h1>Greetings</h1>
-            <Hello name="Jeppe" age="26" />
-            <Hello name="foobaa" age={ika} />
+          {this.state.vasen}
+          <button onClick={this.klikVasen}>vasen</button>
+          <button onClick={this.klikOikea}>oikea</button>
+          {this.state.oikea}
+          <div>{historia()}</div>
         </div>
+      </div>
     )
+  }
 }
 
-ReactDOM.render(<App />, document.getElementById('root'));
+ReactDOM.render(
+  <App />,
+  document.getElementById('root')
+)
