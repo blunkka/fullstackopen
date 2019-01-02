@@ -1,6 +1,6 @@
 import React from 'react'
 import Note from './components/Note'
-import axios from 'axios'
+import noteService from './services/notes'
 
 class App extends React.Component {
 
@@ -15,12 +15,13 @@ class App extends React.Component {
   }
 
   componentDidMount() {    
-    axios.get('http://localhost:3001/notes').then(response => {
-      const notes = response.data
-      this.setState({
-        notes: notes
+    noteService
+      .getAll()
+      .then(response => {
+        this.setState({
+          notes: response
+        })
       })
-    })
   }
 
   //Tapahtumankäsittelijä kutsuu heti tapahtuman metodia event.preventDefault()
@@ -33,27 +34,40 @@ class App extends React.Component {
     const noteObject = {
       content: this.state.newNote,
       date: new Date().toISOString,
-      important: Math.random() > 0.5,
-      id: this.state.notes.length + 1
+      important: Math.random() > 0.5
     }
 
-    const notes = this.state.notes.concat(noteObject)
-
-    this.setState({
-      notes: notes,
-      newNote: ''
-    })
-
-    console.log(event.target)
+    noteService
+    .create(noteObject)
+      .then(newNote => {
+        this.setState({
+          notes: this.state.notes.concat(newNote),
+          newNote: ''
+        })
+      })
   }
 
   handleNoteChange = (event) => {
-    console.log('handleNoteChange: ' + event.target.value)
     this.setState({newNote: event.target.value})
   }
 
   toggleShowAll = () => {
     this.setState({showAll: !this.state.showAll})
+  }
+
+  toggleImportanceOf = (id) => {
+    return () => {
+      const note = this.state.notes.find(n => n.id === id)
+      const changedNote = { ...note, important: !note.important }
+
+      noteService
+      .update(id, changedNote)
+      .then(changedNoteResponse => {
+        this.setState({
+          notes: this.state.notes.map(note => note.id !== id ? note : changedNoteResponse)
+        })
+      })
+    }
   }
   
   render() {
@@ -68,7 +82,12 @@ class App extends React.Component {
           <button onClick={this.toggleShowAll}>Show {lable}</button>
         </div>
         <ul>
-          {notesToShow.map(note=><Note key={note.id} note={note}/>)}
+          {notesToShow.map(note =>
+          <Note 
+            key={note.id}
+            note={note}
+            toggleImportance={this.toggleImportanceOf(note.id)}
+          />)}
         </ul>
         <form onSubmit={this.addNote}>
           <input value={this.state.newNote} onChange={this.handleNoteChange}/>
